@@ -1,9 +1,8 @@
 const posts = require("../data/posts");
 
-const connection = require('../data/db')
+const connection = require("../data/db");
 
 function index(req, res) {
-
   // let filterPosts = posts;
 
   // //! Se la richiesta contiene un filtro, allora filtriamo il menu
@@ -13,19 +12,14 @@ function index(req, res) {
   // // potrebbe essere stata filtrata o contenere il menu originale
   // res.json(filterPosts);
 
-  const sql= 'SELECT * FROM posts'
+  const sql = "SELECT * FROM posts";
 
   connection.query(sql, (err, results) => {
-    
     if (err) {
-      return (
-        res.status(500)
-          .json({ error: 'Connessione fallita' })
-      )
+      return res.status(500).json({ error: "Connessione fallita" });
     }
     res.json(results);
   });
-
 }
 
 function show(req, res) {
@@ -59,7 +53,7 @@ function store(req, res) {
     title: req.body.title,
     content: req.body.content,
     image: req.body.image,
-    tags: req.body.tags
+    tags: req.body.tags,
   };
 
   posts.push(newPost);
@@ -118,27 +112,36 @@ function modify(req, res) {
 }
 
 function destroy(req, res) {
-  // inserisco id in una costante con il parse (altrimenti JSONE)
-  const id = parseInt(req.params.id);
-  //! cerco post con id selezionato
-  const post = posts.find((post) => post.id === id);
+  // // inserisco id in una costante con il parse (altrimenti JSONE)
+  // const id = parseInt(req.params.id);
+  // //! cerco post con id selezionato
+  // const post = posts.find((post) => post.id === id);
 
-  if (!post) {
-    res.status(404);
+  // if (!post) {
+  //   res.status(404);
 
-    return res.json({
-      status: 404,
-      error: "not found",
-      message: "Post non trovato",
-    });
-  }
+  //   return res.json({
+  //     status: 404,
+  //     error: "not found",
+  //     message: "Post non trovato",
+  //   });
+  // }
 
-  posts.splice(posts.indexOf(post), 1);
+  // posts.splice(posts.indexOf(post), 1);
 
-  // ! verifico l'eliminazione
-  console.log(posts);
+  // // ! verifico l'eliminazione
+  // console.log(posts);
 
-  res.sendStatus(204);
+  // res.sendStatus(204);
+  const { id } = req.params;
+  const deleteSql = "DELETE FROM posts WHERE id = ?";
+
+  connection.query(deleteSql, [id], (err) => {
+    if (err) {
+      return res.status(500).json({ error: "Connessione fallita" });
+    }
+    res.sendStatus(204);
+  });
 }
 
 module.exports = { index, show, store, update, modify, destroy };
