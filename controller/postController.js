@@ -23,18 +23,40 @@ function index(req, res) {
 }
 
 function show(req, res) {
-  const post = posts.find((e) => e.id === parseInt(req.params.id));
+  // const post = posts.find((e) => e.id === parseInt(req.params.id));
 
-  if (!post) {
-    res.status(404);
+  // if (!post) {
+  //   res.status(404);
 
-    return res.json({
-      error: "Not Found",
-      message: "Post non trovato",
-    });
-  }
+  //   return res.json({
+  //     error: "Not Found",
+  //     message: "Post non trovato",
+  //   });
+  // }
 
-  res.json(post);
+  // res.json(post);
+
+  const {id} = req.params;
+  const showSql = 'SELECT * FROM posts WHERE id = ?';
+  
+  connection.query(showSql, [id], (err, results) => {
+    
+    if (err) {
+      return res.status(500).json({
+        error: 'Database error'
+      });
+      
+    }
+    if (results.length === 0) {
+      return res.status(404).json({
+
+        error: 'Elemento non trovato'
+        
+      });
+    };
+    res.json(results[0]);
+  });
+
 }
 
 function store(req, res) {
@@ -137,8 +159,13 @@ function destroy(req, res) {
   const deleteSql = "DELETE FROM posts WHERE id = ?";
 
   connection.query(deleteSql, [id], (err) => {
+    if (res.status(404)) {
+      return res
+        .json({ error: "Oggetto non trovato o eliminato" });
+    }
     if (err) {
-      return res.status(500).json({ error: "Connessione fallita" });
+      return res.status(500)
+        .json({ error: "Connessione fallita" });
     }
     res.sendStatus(204);
   });
