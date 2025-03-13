@@ -36,10 +36,18 @@ function show(req, res) {
 
   // res.json(post);
 
-  const {id} = req.params;
-  const showSql = 'SELECT * FROM posts WHERE id = ?';
+  const { id } = req.params;
   
-  connection.query(showSql, [id], (err, results) => {
+  const showSql = 'SELECT * FROM posts WHERE id = ?';
+
+
+  const joinSql = ` SELECT T.*  
+                    FROM tags as T
+                    JOIN post_tag as PT
+                    ON T.id = PT.tag_id
+                    WHERE PT.post_id = ?
+                    `
+  connection.query(showSql, [id], (err, postResult) => {
     
     if (err) {
       return res.status(500).json({
@@ -47,14 +55,27 @@ function show(req, res) {
       });
       
     }
-    if (results.length === 0) {
+    if (postResult.length === 0) {
       return res.status(404).json({
 
         error: 'Elemento non trovato'
-        
+
       });
     };
-    res.json(results[0]);
+    //  res.json(postResult[0]);
+    //! diventa un nuovo oggetto
+    const post = postResult[0];
+
+    connection.query(joinSql, [id], (err, tagsResults) => {
+      
+      if (err) {
+        return res.status(500).json({ error: 'Database query failed' });
+      }
+
+      post.tags = tagsResults;
+      res.json(post);
+
+    })
   });
 
 }
